@@ -4,9 +4,12 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { RelayerController } from './controllers/relayer.controller';
+import { RelayerService } from './services/relayer.service';
 import { ChainConfigService } from './services/chain-config.service';
 import { ContractManagerService } from './services/contract-manager.service';
 import { LoggerService } from './services/logger.service';
+import { GasEstimationService } from './services/gas-estimation.service';
 import configuration from './config/configuration';
 
 @Module({
@@ -22,11 +25,14 @@ import configuration from './config/configuration';
       },
     ]),
   ],
+  controllers: [AppController, RelayerController],
   providers: [
     AppService,
+    RelayerService,
     ChainConfigService,
     ContractManagerService,
     LoggerService,
+    GasEstimationService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
