@@ -1,0 +1,70 @@
+{
+  "arbitrum-sepolia": {
+    "name": "Arbitrum Sepolia",
+    "chainId": "421613",
+    "rpcUrl": "${ARBITRUM_SEPOLIA_RPC_URL}",
+    "explorerUrl": "https://arbiscan.io",
+    "contractAddress": "${ARBITRUM_SEPOLIA_CONTRACT_ADDRESS}",
+    "feeSettings": {
+      "baseFeeBps": "50",
+      "maxFeeBps": "100",
+      "minFeeUsd": "1"
+    },
+    "tokens": {
+      "USDC": {
+        "address": "${ARBITRUM_SEPOLIA_USDC_ADDRESS}",
+        "symbol": "USDC",
+        "name": "USD Coin",
+        "decimals": "6"
+      },
+      "PyUSDC": {
+        "address": "${ARBITRUM_SEPOLIA_PyUSDC_ADDRESS}",
+        "symbol": "PyUSDC",
+        "name": "PyUSD",
+        "decimals": "6"
+      }
+    }
+  },
+
+  "base-sepolia": {
+    "name": "Base Sepolia",
+    "chainId": "84532",
+    "rpcUrl": "${BASE_SEPOLIA_RPC_URL}",
+    "explorerUrl": "https://basescan.org",
+    "contractAddress": "${BASE_SEPOLIA_CONTRACT_ADDRESS}",
+    "feeSettings": {
+      "baseFeeBps": "50",
+      "maxFeeBps": "100",
+      "minFeeUsd": "1"
+    },
+    "tokens": {
+      "USDC": {
+        "address": "${BASE_SEPOLIA_USDC_ADDRESS}",
+        "symbol": "USDC",
+        "name": "USD Coin",
+        "decimals": "6"
+      }
+    }
+  },
+
+  "kadena-chainweb": {
+    "name": "Kadena Chainweb",
+    "chainId": "5920",
+    "rpcUrl": "${KADENA_CHAINWEB_RPC_URL}",
+    "explorerUrl": "http://chain-20.evm-testnet-blockscout.chainweb.com/",
+    "contractAddress": "${KADENA_CHAINWEB_CONTRACT_ADDRESS}",
+    "feeSettings": {
+      "baseFeeBps": "50",
+      "maxFeeBps": "100",
+      "minFeeUsd": "1"
+    },
+    "tokens": {
+      "USDC": {
+        "address": "${KADENA_CHAINWEB_USDC_ADDRESS}",
+        "symbol": "USDC",
+        "name": "USD Coin",
+        "decimals": "6"
+      }
+    }
+  }
+}
