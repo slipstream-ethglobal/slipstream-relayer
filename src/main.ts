@@ -1,26 +1,13 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AppModule } from './app.module';
-import helmet from 'helmet';
+import { NestFactory } from '@nestjs/core';
 import cors from 'cors';
+import helmet from 'helmet';
+import { AppModule } from './app.module';
 
-interface ExpressRequest {
-  method: string;
-  originalUrl: string;
-}
-
-interface ExpressResponse {
-  statusCode: number;
-  on: (event: string, callback: () => void) => void;
-  status: (code: number) => ExpressResponse;
-  json: (data: Record<string, unknown>) => void;
-}
-
-interface ExpressNextFunction {
-  (): void;
-}
 import rateLimit from 'express-rate-limit';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -79,31 +66,9 @@ async function bootstrap() {
   );
 
   // Global throttler guard is configured in app.module.ts
-
-  // Request logging middleware
-  app.use(
-    (req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => {
-      const startTime = Date.now();
-
-      res.on('finish', () => {
-        const responseTime = Date.now() - startTime;
-        logger.log(
-          `API Request: ${req.method} ${req.originalUrl} - ${res.statusCode} - ${responseTime}ms`,
-        );
-      });
-
-      next();
-    },
-  );
-
-  // Error handling
-  app.use((err: Error, req: ExpressRequest, res: ExpressResponse) => {
-    logger.error('Unhandled error:', err);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-    });
-  });
+  // Global filters and interceptors
+  app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   const port = configService.get<number>('port') || 3000;
   await app.listen(port);
