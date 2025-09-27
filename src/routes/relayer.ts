@@ -26,4 +26,7 @@ router.get('/limits/:chainId', relayerController.getSafetyLimits);
 // Network status endpoint
 router.get('/network/:chainId', relayerController.getNetworkStatus);
 
+// Get all routes endpoint
+router.get('/routes', relayerController.getAllRoutes);
+
 export default router;

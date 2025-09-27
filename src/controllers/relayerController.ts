@@ -369,4 +369,113 @@ export class RelayerController {
       });
     }
   };
+
+  /**
+   * Get all available routes endpoint
+   * GET /api/v1/relayer/routes
+   */
+  public getAllRoutes = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const apiBase = `${baseUrl}/api/v1/relayer`;
+      
+      const routes = [
+        {
+          method: 'GET',
+          path: '/ping',
+          fullUrl: `${apiBase}/ping`,
+          description: 'Health check endpoint',
+          parameters: [],
+          example: `${apiBase}/ping`
+        },
+        {
+          method: 'POST',
+          path: '/relay',
+          fullUrl: `${apiBase}/relay`,
+          description: 'Relay a gasless transaction',
+          parameters: [
+            { name: 'chainId', type: 'number', required: true, description: 'Target blockchain chain ID' },
+            { name: 'request', type: 'object', required: true, description: 'Transaction request object' },
+            { name: 'permit', type: 'object', required: false, description: 'ERC-2612 permit signature (optional)' }
+          ],
+          example: `${apiBase}/relay`
+        },
+        {
+          method: 'GET',
+          path: '/fee/:chainId/:tokenSymbol/:amount',
+          fullUrl: `${apiBase}/fee/:chainId/:tokenSymbol/:amount`,
+          description: 'Get fee estimate for a transaction',
+          parameters: [
+            { name: 'chainId', type: 'number', required: true, description: 'Target blockchain chain ID' },
+            { name: 'tokenSymbol', type: 'string', required: true, description: 'Token symbol (e.g., USDC, PYUSD)' },
+            { name: 'amount', type: 'string', required: true, description: 'Transfer amount' }
+          ],
+          example: `${apiBase}/fee/84532/USDC/1000000`
+        },
+        {
+          method: 'GET',
+          path: '/status/:transactionHash',
+          fullUrl: `${apiBase}/status/:transactionHash`,
+          description: 'Get transaction status by hash',
+          parameters: [
+            { name: 'transactionHash', type: 'string', required: true, description: 'Transaction hash' },
+            { name: 'chainId', type: 'number', required: true, description: 'Chain ID (query parameter)' }
+          ],
+          example: `${apiBase}/status/0x123...?chainId=84532`
+        },
+        {
+          method: 'GET',
+          path: '/info',
+          fullUrl: `${apiBase}/info`,
+          description: 'Get relayer information and supported chains',
+          parameters: [],
+          example: `${apiBase}/info`
+        },
+        {
+          method: 'GET',
+          path: '/limits/:chainId',
+          fullUrl: `${apiBase}/limits/:chainId`,
+          description: 'Get safety limits for a specific chain',
+          parameters: [
+            { name: 'chainId', type: 'number', required: true, description: 'Target blockchain chain ID' }
+          ],
+          example: `${apiBase}/limits/84532`
+        },
+        {
+          method: 'GET',
+          path: '/network/:chainId',
+          fullUrl: `${apiBase}/network/:chainId`,
+          description: 'Get network status and relayer balance',
+          parameters: [
+            { name: 'chainId', type: 'number', required: true, description: 'Target blockchain chain ID' }
+          ],
+          example: `${apiBase}/network/84532`
+        },
+        {
+          method: 'GET',
+          path: '/routes',
+          fullUrl: `${apiBase}/routes`,
+          description: 'Get all available API routes (this endpoint)',
+          parameters: [],
+          example: `${apiBase}/routes`
+        }
+      ];
+
+      res.json({
+        success: true,
+        message: 'All available API routes',
+        baseUrl: apiBase,
+        totalRoutes: routes.length,
+        routes: routes
+      });
+
+    } catch (error: any) {
+      logger.error('Error in routes endpoint', { error: error.message, ip: req.ip });
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: 'Failed to get routes information'
+      });
+    }
+  };
 }

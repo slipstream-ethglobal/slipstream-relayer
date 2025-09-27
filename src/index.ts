@@ -138,7 +138,8 @@ async function startServer() {
         transactionStatus: `http://localhost:${config.PORT}/api/v1/relayer/status/:transactionHash`,
         relayerInfo: `http://localhost:${config.PORT}/api/v1/relayer/info`,
         safetyLimits: `http://localhost:${config.PORT}/api/v1/relayer/limits/:chainId`,
-        networkStatus: `http://localhost:${config.PORT}/api/v1/relayer/network/:chainId`
+        networkStatus: `http://localhost:${config.PORT}/api/v1/relayer/network/:chainId`,
+        allRoutes: `http://localhost:${config.PORT}/api/v1/relayer/routes`
       });
 
       logger.info('💰 PayPal Track Configuration:', {
