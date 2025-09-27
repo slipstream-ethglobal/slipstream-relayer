@@ -129,4 +129,3 @@ export class LoggerService implements NestLoggerService, ILoggerService {
     });
   }
 }
-
