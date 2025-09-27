@@ -27,6 +27,9 @@ import {
   RelayTransferDto,
   RelayTransferResponseDto,
   EstimateGasResponseDto,
+  GasPriceResponseDto,
+  GasCacheStatsResponseDto,
+  PermitSupportResponseDto,
   HealthCheckResponseDto,
 } from '../dto';
 
@@ -44,7 +47,7 @@ export class RelayerController {
   @Get('health')
   getHealth(): HealthCheckResponseDto {
     return {
-      success: 'true',
+      success: true,
       status: 'healthy',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
@@ -59,24 +62,32 @@ export class RelayerController {
         const info = this.relayerService.getChainInfo(chainName);
         return {
           name: chainName,
-          chainId: info.chainId,
+          chainId: parseInt(info.chainId),
           rpcUrl: info.rpcUrl,
           explorerUrl: info.explorerUrl,
           contractAddress: info.contractAddress,
           feeSettings: info.feeSettings,
-          tokens: info.tokens,
+          tokens: Object.fromEntries(
+            Object.entries(info.tokens).map(([symbol, token]) => [
+              symbol,
+              {
+                ...token,
+                decimals: parseInt(token.decimals),
+              },
+            ]),
+          ),
         };
       });
 
       return {
-        success: 'true',
+        success: true,
         chains: chainsInfo,
       };
     } catch (error) {
       this.loggerService.logError(error as Error, { endpoint: 'getChains' });
       throw new HttpException(
         {
-          success: 'false',
+          success: false,
           error: 'Failed to get supported chains',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -88,11 +99,20 @@ export class RelayerController {
   getTokens(@Param('chainName') chainName: string): GetTokensResponseDto {
     try {
       const tokens = this.relayerService.getSupportedTokens(chainName);
+      const processedTokens = Object.fromEntries(
+        Object.entries(tokens).map(([symbol, token]) => [
+          symbol,
+          {
+            ...token,
+            decimals: parseInt(token.decimals),
+          },
+        ]),
+      );
 
       return {
-        success: 'true',
+        success: true,
         chainName,
-        tokens,
+        tokens: processedTokens,
       };
     } catch (error) {
       this.loggerService.logError(error as Error, {
@@ -101,7 +121,7 @@ export class RelayerController {
       });
       throw new HttpException(
         {
-          success: 'false',
+          success: false,
           error: (error as Error).message,
         },
         HttpStatus.BAD_REQUEST,
@@ -119,10 +139,10 @@ export class RelayerController {
       );
 
       return {
-        success: 'true',
+        success: true,
         chainName,
         userAddress,
-        nonce: nonce.toString(),
+        nonce: Number(nonce),
       };
     } catch (error) {
       this.loggerService.logError(error as Error, {
@@ -131,7 +151,7 @@ export class RelayerController {
       });
       throw new HttpException(
         {
-          success: 'false',
+          success: false,
           error: (error as Error).message,
         },
         HttpStatus.BAD_REQUEST,
@@ -154,16 +174,14 @@ export class RelayerController {
       const tokenInfo = chainInfo.tokens[tokenSymbol];
 
       return {
-        success: 'true',
+        success: true,
         chainName,
         tokenSymbol,
-        amount,
-        fee: fee.toString(),
-        total: (BigInt(amount) + fee).toString(),
-        feePercentage: (
-          parseInt(chainInfo.feeSettings.baseFeeBps) / 100
-        ).toString(),
-        tokenDecimals: tokenInfo.decimals,
+        amount: parseInt(amount),
+        fee: Number(fee),
+        total: Number(BigInt(amount) + fee),
+        feePercentage: parseInt(chainInfo.feeSettings.baseFeeBps) / 100,
+        tokenDecimals: parseInt(tokenInfo.decimals),
       };
     } catch (error) {
       this.loggerService.logError(error as Error, {
@@ -172,7 +190,7 @@ export class RelayerController {
       });
       throw new HttpException(
         {
-          success: 'false',
+          success: false,
           error: (error as Error).message,
         },
         HttpStatus.BAD_REQUEST,
@@ -191,7 +209,7 @@ export class RelayerController {
       );
 
       return {
-        success: 'true',
+        success: true,
         messageHash,
         message:
           'Sign this message hash with your wallet to authorize the transfer',
@@ -203,7 +221,7 @@ export class RelayerController {
       });
       throw new HttpException(
         {
-          success: 'false',
+          success: false,
           error: (error as Error).message,
         },
         HttpStatus.BAD_REQUEST,
@@ -220,7 +238,9 @@ export class RelayerController {
 
       return {
         ...result,
-        success: 'true',
+        success: true,
+        gasUsed: parseInt(result.gasUsed),
+        fee: parseInt(result.fee),
       };
     } catch (error) {
       this.loggerService.logError(error as Error, {
@@ -276,7 +296,9 @@ export class RelayerController {
 
       return {
         ...result,
-        success: 'true',
+        success: true,
+        gasUsed: parseInt(result.gasUsed),
+        fee: parseInt(result.fee),
       };
     } catch (error) {
       this.loggerService.logError(error as Error, {
@@ -325,7 +347,9 @@ export class RelayerController {
 
       return {
         ...result,
-        success: 'true',
+        success: true,
+        gasUsed: parseInt(result.gasUsed),
+        fee: parseInt(result.fee),
       };
     } catch (error) {
       this.loggerService.logError(error as Error, {
@@ -369,7 +393,7 @@ export class RelayerController {
   async checkPermitSupport(
     @Param('chainName') chainName: string,
     @Param('tokenAddress') tokenAddress: string,
-  ): Promise<{ supportsPermit: boolean }> {
+  ): Promise<PermitSupportResponseDto> {
     try {
       const supportsPermit =
         await this.relayerService.checkERC2612PermitSupport(
@@ -377,7 +401,10 @@ export class RelayerController {
           tokenAddress,
         );
 
-      return { supportsPermit };
+      return {
+        success: true,
+        supportsPermit,
+      };
     } catch (error) {
       this.loggerService.logError(error as Error, {
         endpoint: 'checkPermitSupport',
@@ -387,7 +414,7 @@ export class RelayerController {
 
       throw new HttpException(
         {
-          success: 'false',
+          success: false,
           error: (error as Error).message,
         },
         HttpStatus.BAD_REQUEST,
@@ -406,8 +433,10 @@ export class RelayerController {
       );
 
       return {
-        success: 'true',
-        ...gasEstimate,
+        success: true,
+        gasEstimate: parseInt(gasEstimate.gasEstimate),
+        gasPrice: parseFloat(gasEstimate.gasPrice),
+        gasCost: parseInt(gasEstimate.gasCost),
       };
     } catch (error) {
       this.loggerService.logError(error as Error, {
@@ -416,7 +445,7 @@ export class RelayerController {
       });
       throw new HttpException(
         {
-          success: 'false',
+          success: false,
           error: (error as Error).message,
         },
         HttpStatus.BAD_REQUEST,
@@ -440,7 +469,7 @@ export class RelayerController {
       );
 
       return {
-        success: 'true',
+        success: true,
         ...gasEstimation,
       };
     } catch (error) {
@@ -450,7 +479,7 @@ export class RelayerController {
       });
       throw new HttpException(
         {
-          success: 'false',
+          success: false,
           error: (error as Error).message,
         },
         HttpStatus.BAD_REQUEST,
@@ -459,15 +488,17 @@ export class RelayerController {
   }
 
   @Get('gas-price/:chainName')
-  async getGasPrice(@Param('chainName') chainName: string): Promise<any> {
+  async getGasPrice(
+    @Param('chainName') chainName: string,
+  ): Promise<GasPriceResponseDto> {
     try {
       const gasPrice = await this.gasEstimationService.getGasPrice(chainName);
 
       return {
-        success: 'true',
+        success: true,
         chainName,
-        gasPrice: ethers.formatUnits(gasPrice, 'gwei'),
-        gasPriceWei: gasPrice.toString(),
+        gasPrice: parseFloat(ethers.formatUnits(gasPrice, 'gwei')),
+        gasPriceWei: Number(gasPrice),
       };
     } catch (error) {
       this.loggerService.logError(error as Error, {
@@ -476,7 +507,7 @@ export class RelayerController {
       });
       throw new HttpException(
         {
-          success: 'false',
+          success: false,
           error: (error as Error).message,
         },
         HttpStatus.BAD_REQUEST,
@@ -485,13 +516,18 @@ export class RelayerController {
   }
 
   @Get('gas-cache-stats')
-  getGasCacheStats(): Record<string, unknown> {
+  getGasCacheStats(): GasCacheStatsResponseDto {
     try {
       const stats = this.gasEstimationService.getCacheStats();
 
       return {
-        success: 'true',
-        ...stats,
+        success: true,
+        size: stats.size,
+        entries: stats.entries.map((entry) => ({
+          chain: entry.chain,
+          price: parseFloat(entry.price),
+          age: entry.age,
+        })),
       };
     } catch (error) {
       this.loggerService.logError(error as Error, {
@@ -499,7 +535,7 @@ export class RelayerController {
       });
       throw new HttpException(
         {
-          success: 'false',
+          success: false,
           error: (error as Error).message,
         },
         HttpStatus.BAD_REQUEST,

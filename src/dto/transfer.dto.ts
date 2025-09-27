@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, Matches, IsNumber, Min } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  Matches,
+  IsNumber,
+  IsBoolean,
+} from 'class-validator';
 
 export class GetNonceDto {
   @IsString()
@@ -12,9 +18,8 @@ export class GetNonceDto {
 }
 
 export class GetNonceResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()
@@ -24,9 +29,8 @@ export class GetNonceResponseDto {
   @IsNotEmpty()
   userAddress: string;
 
-  @IsString()
-  @IsNotEmpty()
-  nonce: string;
+  @IsNumber()
+  nonce: number;
 }
 
 export class RelayTransferDto {
@@ -64,9 +68,8 @@ export class RelayTransferDto {
 }
 
 export class RelayTransferResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()
@@ -79,17 +82,15 @@ export class RelayTransferResponseDto {
   @IsNumber()
   blockNumber: number;
 
-  @IsString()
-  @IsNotEmpty()
-  gasUsed: string;
+  @IsNumber()
+  gasUsed: number;
 
   @IsString()
   @IsNotEmpty()
   explorerUrl: string;
 
-  @IsString()
-  @IsNotEmpty()
-  fee: string;
+  @IsNumber()
+  fee: number;
 
   @IsNumber()
   executionTime: number;

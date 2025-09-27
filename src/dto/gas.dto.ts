@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsBoolean, IsArray } from 'class-validator';
 
 export class EstimateGasDto {
   @IsString()
@@ -21,9 +21,8 @@ export class EstimateGasDto {
   @IsNotEmpty()
   amount: string;
 
-  @IsString()
-  @IsNotEmpty()
-  nonce: string;
+  @IsNumber()
+  nonce: number;
 
   @IsString()
   @IsNotEmpty()
@@ -31,19 +30,54 @@ export class EstimateGasDto {
 }
 
 export class EstimateGasResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
-  @IsString()
-  @IsNotEmpty()
-  gasEstimate: string;
+  @IsNumber()
+  gasEstimate: number;
 
-  @IsString()
-  @IsNotEmpty()
-  gasPrice: string;
+  @IsNumber()
+  gasPrice: number;
 
-  @IsString()
-  @IsNotEmpty()
-  gasCost: string;
+  @IsNumber()
+  gasCost: number;
 }
+
+export class GasPriceResponseDto {
+  @IsBoolean()
+  success: boolean;
+
+  @IsString()
+  @IsNotEmpty()
+  chainName: string;
+
+  @IsNumber()
+  gasPrice: number;
+
+  @IsNumber()
+  gasPriceWei: number;
+}
+
+export class PermitSupportResponseDto {
+  @IsBoolean()
+  success: boolean;
+
+  @IsBoolean()
+  supportsPermit: boolean;
+}
+
+export class GasCacheStatsResponseDto {
+  @IsBoolean()
+  success: boolean;
+
+  @IsNumber()
+  size: number;
+
+  @IsArray()
+  entries: Array<{
+    chain: string;
+    price: number;
+    age: number;
+  }>;
+}
+

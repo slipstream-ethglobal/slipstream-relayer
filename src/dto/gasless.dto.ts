@@ -7,6 +7,7 @@ import {
   IsArray,
   ValidateNested,
   IsBoolean,
+  ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -122,9 +123,8 @@ export class BatchTransferDto {
 }
 
 export class GaslessTransferResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()
@@ -134,30 +134,26 @@ export class GaslessTransferResponseDto {
   @IsNotEmpty()
   txHash: string;
 
-  @IsString()
-  @IsNotEmpty()
-  blockNumber: string;
+  @IsNumber()
+  blockNumber: number;
 
-  @IsString()
-  @IsNotEmpty()
-  gasUsed: string;
+  @IsNumber()
+  gasUsed: number;
 
   @IsString()
   @IsNotEmpty()
   explorerUrl: string;
 
-  @IsString()
-  @IsNotEmpty()
-  fee: string;
+  @IsNumber()
+  fee: number;
 
   @IsNumber()
   executionTime: number;
 }
 
 export class BatchTransferResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsArray()
   @IsString({ each: true })
@@ -168,8 +164,8 @@ export class BatchTransferResponseDto {
   txHashes: string[];
 
   @IsArray()
-  @IsString({ each: true })
-  blockNumbers: string[];
+  @ArrayMinSize(0)
+  blockNumbers: number[];
 
   @IsString()
   @IsNotEmpty()
@@ -189,19 +185,10 @@ export class BatchTransferResponseDto {
   }>;
 }
 
-export class PermitSupportResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
-
-  @IsBoolean()
-  supportsPermit: boolean;
-}
 
 export class ContractStateResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()
@@ -216,9 +203,8 @@ export class ContractStateResponseDto {
 }
 
 export class RelayerInfoResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()
@@ -233,9 +219,8 @@ export class RelayerInfoResponseDto {
 }
 
 export class TokenInfoResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()

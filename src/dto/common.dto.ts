@@ -1,9 +1,8 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
 
 export class HealthCheckResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()
@@ -19,9 +18,8 @@ export class HealthCheckResponseDto {
 }
 
 export class ErrorResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()
@@ -33,9 +31,8 @@ export class ErrorResponseDto {
 }
 
 export class ValidationErrorDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()
@@ -45,3 +42,4 @@ export class ValidationErrorDto {
   @IsNotEmpty()
   details: string;
 }
+

@@ -4,6 +4,8 @@ import {
   IsArray,
   ValidateNested,
   IsOptional,
+  IsNumber,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -20,9 +22,8 @@ export class TokenInfoDto {
   @IsNotEmpty()
   name: string;
 
-  @IsString()
-  @IsNotEmpty()
-  decimals: string;
+  @IsNumber()
+  decimals: number;
 }
 
 export class FeeSettingsDto {
@@ -44,9 +45,8 @@ export class ChainInfoDto {
   @IsNotEmpty()
   name: string;
 
-  @IsString()
-  @IsNotEmpty()
-  chainId: string;
+  @IsNumber()
+  chainId: number;
 
   @IsString()
   @IsNotEmpty()
@@ -70,9 +70,8 @@ export class ChainInfoDto {
 }
 
 export class GetChainsResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -81,9 +80,8 @@ export class GetChainsResponseDto {
 }
 
 export class GetTokensResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()

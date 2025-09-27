@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, Matches, IsNumber, Min } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  Matches,
+  IsNumber,
+  Min,
+  IsBoolean,
+} from 'class-validator';
 
 export class PrepareSignatureDto {
   @IsString()
@@ -39,9 +46,8 @@ export class PrepareSignatureDto {
 }
 
 export class PrepareSignatureResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()

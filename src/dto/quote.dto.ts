@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, Matches } from 'class-validator';
+import { IsString, IsNotEmpty, Matches, IsNumber, IsBoolean } from 'class-validator';
 
 export class GetQuoteDto {
   @IsString()
@@ -16,9 +16,8 @@ export class GetQuoteDto {
 }
 
 export class GetQuoteResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  success: string;
+  @IsBoolean()
+  success: boolean;
 
   @IsString()
   @IsNotEmpty()
@@ -28,23 +27,19 @@ export class GetQuoteResponseDto {
   @IsNotEmpty()
   tokenSymbol: string;
 
-  @IsString()
-  @IsNotEmpty()
-  amount: string;
+  @IsNumber()
+  amount: number;
 
-  @IsString()
-  @IsNotEmpty()
-  fee: string;
+  @IsNumber()
+  fee: number;
 
-  @IsString()
-  @IsNotEmpty()
-  total: string;
+  @IsNumber()
+  total: number;
 
-  @IsString()
-  @IsNotEmpty()
-  feePercentage: string;
+  @IsNumber()
+  feePercentage: number;
 
-  @IsString()
-  @IsNotEmpty()
-  tokenDecimals: string;
+  @IsNumber()
+  tokenDecimals: number;
 }
+
