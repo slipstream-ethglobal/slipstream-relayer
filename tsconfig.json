@@ -5,7 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "./dist",
-    "rootDir": "../slipstream-relayer/src",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -17,10 +17,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "allowSyntheticDefaultImports": true,
-    "typeRoots": ["./node_modules/@types", "../slipstream-relayer/src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": [
-    "../slipstream-relayer/src/**/*"
+    "./src/**/*"
   ],
   "exclude": [
     "node_modules",
