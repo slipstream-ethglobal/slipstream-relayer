@@ -84,7 +84,7 @@ export class PriceService {
    * Fetch price from Pyth Network
    */
   private async fetchFromPyth(priceId: string): Promise<number> {
-    const url = `${config.PYTH_PRICE_ENDPOINT}?ids[]=${priceId}`;
+    const url = `${process.env.PYTH_PRICE_ENDPOINT}?ids[]=${priceId}`;
     
     const response = await axios.get<PythPriceResponse>(url, {
       timeout: 5000,

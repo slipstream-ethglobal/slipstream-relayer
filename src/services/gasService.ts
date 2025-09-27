@@ -21,10 +21,17 @@ export class GasService {
   public getProvider(chainId: number): ethers.JsonRpcProvider {
     if (!this.providers.has(chainId)) {
       const chainConfig = getChainConfig(chainId);
+      if (!chainConfig) {
+        throw new Error(`Chain config not found for chainId: ${chainId}`);
+      }
       const provider = new ethers.JsonRpcProvider(chainConfig.rpcUrl);
       this.providers.set(chainId, provider);
     }
-    return this.providers.get(chainId)!;
+    const provider = this.providers.get(chainId);
+    if (!provider) {
+      throw new Error(`Provider not found for chainId: ${chainId}`);
+    }
+    return provider;
   }
 
   /**
@@ -50,7 +57,7 @@ export class GasService {
       const bufferedGas = (gasEstimate * 120n) / 100n;
       
       // Cap at max gas limit
-      const maxGas = BigInt(chainConfig.gasSettings.gasLimit);
+      const maxGas = BigInt(chainConfig?.gasSettings.gasLimit ?? 0);
       const finalGas = bufferedGas > maxGas ? maxGas : bufferedGas;
 
       logger.info('Gas estimated', { 
@@ -66,7 +73,7 @@ export class GasService {
       logger.error('Error estimating gas', { chainId, contractAddress, error });
       // Return default gas limit as fallback
       const chainConfig = getChainConfig(chainId);
-      return BigInt(chainConfig.gasSettings.gasLimit);
+      return BigInt(chainConfig?.gasSettings.gasLimit ?? 0);
     }
   }
 
@@ -101,8 +108,8 @@ export class GasService {
 
       // Fallback to configured values
       return {
-        maxFeePerGas: BigInt(chainConfig.gasSettings.maxFeePerGas),
-        maxPriorityFeePerGas: BigInt(chainConfig.gasSettings.maxPriorityFeePerGas)
+        maxFeePerGas: BigInt(chainConfig?.gasSettings.maxFeePerGas ?? 0),
+        maxPriorityFeePerGas: BigInt(chainConfig?.gasSettings.maxPriorityFeePerGas ?? 0)
       };
 
     } catch (error) {
@@ -111,8 +118,8 @@ export class GasService {
       // Fallback to configured values
       const chainConfig = getChainConfig(chainId);
       return {
-        maxFeePerGas: BigInt(chainConfig.gasSettings.maxFeePerGas),
-        maxPriorityFeePerGas: BigInt(chainConfig.gasSettings.maxPriorityFeePerGas)
+        maxFeePerGas: BigInt(chainConfig?.gasSettings.maxFeePerGas ?? 0),
+        maxPriorityFeePerGas: BigInt(chainConfig?.gasSettings.maxPriorityFeePerGas ?? 0)
       };
     }
   }
