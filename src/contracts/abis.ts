@@ -1,0 +1,906 @@
+export const SlipstreamGaslessProxyABI = [
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'contractOwnerAddress',
+        type: 'address',
+      },
+      {
+        internalType: 'address[]',
+        name: 'initialRelayerAddresses',
+        type: 'address[]',
+      },
+      {
+        internalType: 'address[]',
+        name: 'initialSupportedTokens',
+        type: 'address[]',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
+  },
+  {
+    inputs: [],
+    name: 'ECDSAInvalidSignature',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'length',
+        type: 'uint256',
+      },
+    ],
+    name: 'ECDSAInvalidSignatureLength',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 's',
+        type: 'bytes32',
+      },
+    ],
+    name: 'ECDSAInvalidSignatureS',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'EnforcedPause',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'ExpectedPause',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+    ],
+    name: 'OwnableInvalidOwner',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'OwnableUnauthorizedAccount',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'ReentrancyGuardReentrantCall',
+    type: 'error',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'senderAddress',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'recipientAddress',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'tokenContractAddress',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'transferredAmount',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'relayerCompensation',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'executingRelayer',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'transactionNonce',
+        type: 'uint256',
+      },
+    ],
+    name: 'GaslessTokenTransferCompleted',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'previousOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
+    ],
+    name: 'OwnershipTransferred',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'Paused',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'relayerAddress',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'bool',
+        name: 'authorizationStatus',
+        type: 'bool',
+      },
+    ],
+    name: 'RelayerAuthorizationUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'tokenAddress',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'bool',
+        name: 'supportStatus',
+        type: 'bool',
+      },
+    ],
+    name: 'TokenSupportStatusUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'Unpaused',
+    type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'CONTRACT_DOMAIN_SEPARATOR',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    name: 'allowedTokenContracts',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'fromAddress',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'toAddress',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'tokenContract',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'transferAmount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'relayerServiceFee',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'transactionNonce',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'expirationDeadline',
+            type: 'uint256',
+          },
+        ],
+        internalType: 'struct SlipstreamGaslessProxy.GaslessTransactionRequest',
+        name: 'transactionRequest',
+        type: 'tuple',
+      },
+    ],
+    name: 'calculateTransactionIdentifier',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'tokenAddress',
+        type: 'address',
+      },
+    ],
+    name: 'checkERC2612PermitSupport',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'transactionId',
+        type: 'bytes32',
+      },
+    ],
+    name: 'checkTransactionExecutionStatus',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    name: 'completedTransactionHashes',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'tokenAddress',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: 'destinationAddress',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'recoveryAmount',
+        type: 'uint256',
+      },
+    ],
+    name: 'emergencyTokenRecovery',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'userAddress',
+        type: 'address',
+      },
+    ],
+    name: 'getCurrentUserNonce',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'owner',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'pauseContractOperations',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'paused',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'fromAddress',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'toAddress',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'tokenContract',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'transferAmount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'relayerServiceFee',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'transactionNonce',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'expirationDeadline',
+            type: 'uint256',
+          },
+        ],
+        internalType:
+          'struct SlipstreamGaslessProxy.GaslessTransactionRequest[]',
+        name: 'transactionRequests',
+        type: 'tuple[]',
+      },
+      {
+        internalType: 'bytes[]',
+        name: 'userSignatures',
+        type: 'bytes[]',
+      },
+      {
+        components: [
+          {
+            internalType: 'uint256',
+            name: 'approvalValue',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'permitDeadline',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint8',
+            name: 'signatureV',
+            type: 'uint8',
+          },
+          {
+            internalType: 'bytes32',
+            name: 'signatureR',
+            type: 'bytes32',
+          },
+          {
+            internalType: 'bytes32',
+            name: 'signatureS',
+            type: 'bytes32',
+          },
+        ],
+        internalType: 'struct SlipstreamGaslessProxy.ERC2612PermitSignature[]',
+        name: 'permitSignatureData',
+        type: 'tuple[]',
+      },
+    ],
+    name: 'processBatchPermitBasedTransfers',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'fromAddress',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'toAddress',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'tokenContract',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'transferAmount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'relayerServiceFee',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'transactionNonce',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'expirationDeadline',
+            type: 'uint256',
+          },
+        ],
+        internalType:
+          'struct SlipstreamGaslessProxy.GaslessTransactionRequest[]',
+        name: 'transactionRequests',
+        type: 'tuple[]',
+      },
+      {
+        internalType: 'bytes[]',
+        name: 'userSignatures',
+        type: 'bytes[]',
+      },
+    ],
+    name: 'processBatchStandardTransfers',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'fromAddress',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'toAddress',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'tokenContract',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'transferAmount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'relayerServiceFee',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'transactionNonce',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'expirationDeadline',
+            type: 'uint256',
+          },
+        ],
+        internalType: 'struct SlipstreamGaslessProxy.GaslessTransactionRequest',
+        name: 'transactionRequest',
+        type: 'tuple',
+      },
+      {
+        internalType: 'bytes',
+        name: 'userSignature',
+        type: 'bytes',
+      },
+      {
+        components: [
+          {
+            internalType: 'uint256',
+            name: 'approvalValue',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'permitDeadline',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint8',
+            name: 'signatureV',
+            type: 'uint8',
+          },
+          {
+            internalType: 'bytes32',
+            name: 'signatureR',
+            type: 'bytes32',
+          },
+          {
+            internalType: 'bytes32',
+            name: 'signatureS',
+            type: 'bytes32',
+          },
+        ],
+        internalType: 'struct SlipstreamGaslessProxy.ERC2612PermitSignature',
+        name: 'permitSignatureData',
+        type: 'tuple',
+      },
+    ],
+    name: 'processPermitBasedGaslessTransfer',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'fromAddress',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'toAddress',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'tokenContract',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'transferAmount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'relayerServiceFee',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'transactionNonce',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'expirationDeadline',
+            type: 'uint256',
+          },
+        ],
+        internalType: 'struct SlipstreamGaslessProxy.GaslessTransactionRequest',
+        name: 'transactionRequest',
+        type: 'tuple',
+      },
+      {
+        internalType: 'bytes',
+        name: 'userSignature',
+        type: 'bytes',
+      },
+    ],
+    name: 'processStandardGaslessTransfer',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'renounceOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'resumeContractOperations',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
+    ],
+    name: 'transferOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'relayerAddress',
+        type: 'address',
+      },
+      {
+        internalType: 'bool',
+        name: 'authorizationStatus',
+        type: 'bool',
+      },
+    ],
+    name: 'updateRelayerAuthorizationStatus',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'tokenAddress',
+        type: 'address',
+      },
+      {
+        internalType: 'bool',
+        name: 'supportStatus',
+        type: 'bool',
+      },
+    ],
+    name: 'updateTokenSupportStatus',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    name: 'userNonceCounter',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    name: 'whitelistedRelayerAddresses',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+// ERC20 ABI for token interactions
+export const ERC20ABI = [
+  {
+    constant: true,
+    inputs: [{ name: '_owner', type: 'address' }],
+    name: 'balanceOf',
+    outputs: [{ name: 'balance', type: 'uint256' }],
+    type: 'function',
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: '_spender', type: 'address' },
+      { name: '_value', type: 'uint256' },
+    ],
+    name: 'approve',
+    outputs: [{ name: '', type: 'bool' }],
+    type: 'function',
+  },
+  {
+    constant: true,
+    inputs: [
+      { name: '_owner', type: 'address' },
+      { name: '_spender', type: 'address' },
+    ],
+    name: 'allowance',
+    outputs: [{ name: '', type: 'uint256' }],
+    type: 'function',
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: '_to', type: 'address' },
+      { name: '_value', type: 'uint256' },
+    ],
+    name: 'transfer',
+    outputs: [{ name: '', type: 'bool' }],
+    type: 'function',
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: '_from', type: 'address' },
+      { name: '_to', type: 'address' },
+      { name: '_value', type: 'uint256' },
+    ],
+    name: 'transferFrom',
+    outputs: [{ name: '', type: 'bool' }],
+    type: 'function',
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: 'totalSupply',
+    outputs: [{ name: '', type: 'uint256' }],
+    type: 'function',
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: 'decimals',
+    outputs: [{ name: '', type: 'uint8' }],
+    type: 'function',
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: 'name',
+    outputs: [{ name: '', type: 'string' }],
+    type: 'function',
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: 'symbol',
+    outputs: [{ name: '', type: 'string' }],
+    type: 'function',
+  },
+] as const;
