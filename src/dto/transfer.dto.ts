@@ -53,11 +53,9 @@ export class RelayTransferDto {
   @Matches(/^\d+$/, { message: 'Amount must be a valid integer string' })
   amount: string;
 
-  @IsNumber()
-  @Min(Math.floor(Date.now() / 1000), {
-    message: 'Deadline must be in the future',
-  })
-  deadline: number;
+  @IsString()
+  @IsNotEmpty()
+  deadline: string;
 
   @IsString()
   @IsNotEmpty()
@@ -78,9 +76,8 @@ export class RelayTransferResponseDto {
   @IsNotEmpty()
   txHash: string;
 
-  @IsString()
-  @IsNotEmpty()
-  blockNumber: string;
+  @IsNumber()
+  blockNumber: number;
 
   @IsString()
   @IsNotEmpty()

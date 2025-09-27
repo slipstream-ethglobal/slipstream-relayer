@@ -2,7 +2,12 @@ import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common';
 import * as winston from 'winston';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
-import { ILoggerService } from '../interfaces/relayer.interface';
+import {
+  ILoggerService,
+  ErrorContext,
+  ExpressRequest,
+  ExpressResponse,
+} from '../interfaces/relayer.interface';
 
 @Injectable()
 export class LoggerService implements NestLoggerService, ILoggerService {
@@ -65,13 +70,20 @@ export class LoggerService implements NestLoggerService, ILoggerService {
           format: winston.format.combine(
             winston.format.colorize(),
             winston.format.simple(),
-            winston.format.printf(({ timestamp, level, message, ...meta }) => {
-              let logMessage = `${timestamp} [${level}]: ${message}`;
-              if (Object.keys(meta).length > 0) {
-                logMessage += ` ${JSON.stringify(meta, null, 2)}`;
-              }
-              return logMessage;
-            }),
+            winston.format.printf(
+              ({
+                timestamp,
+                level,
+                message,
+                ...meta
+              }: Record<string, unknown>) => {
+                let logMessage = `${String(timestamp)} [${String(level)}]: ${String(message)}`;
+                if (meta && Object.keys(meta).length > 0) {
+                  logMessage += ` ${JSON.stringify(meta, null, 2)}`;
+                }
+                return logMessage;
+              },
+            ),
           ),
         }),
       );
@@ -82,12 +94,18 @@ export class LoggerService implements NestLoggerService, ILoggerService {
     this.logger.info(message, { context });
   }
 
-  error(message: string, trace?: string, context?: string): void {
-    this.logger.error(message, { trace, context });
+  error(message: string, meta?: Record<string, unknown>): void {
+    this.logger.error(message, {
+      ...meta,
+      timestamp: new Date().toISOString(),
+    });
   }
 
-  warn(message: string, context?: string): void {
-    this.logger.warn(message, { context });
+  warn(message: string, meta?: Record<string, unknown>): void {
+    this.logger.warn(message, {
+      ...meta,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   debug(message: string, context?: string): void {
@@ -98,11 +116,11 @@ export class LoggerService implements NestLoggerService, ILoggerService {
     this.logger.verbose(message, { context });
   }
 
-  info(message: string, meta?: any): void {
+  info(message: string, meta?: Record<string, unknown>): void {
     this.logger.info(message, meta);
   }
 
-  logTransaction(type: string, data: any): void {
+  logTransaction(type: string, data: Record<string, unknown>): void {
     this.logger.info(`TRANSACTION_${type.toUpperCase()}`, {
       type,
       timestamp: new Date().toISOString(),
@@ -110,7 +128,7 @@ export class LoggerService implements NestLoggerService, ILoggerService {
     });
   }
 
-  logError(error: Error, context: any = {}): void {
+  logError(error: Error, context: ErrorContext = {}): void {
     this.logger.error('Error occurred', {
       error: error.message,
       stack: error.stack,
@@ -118,7 +136,11 @@ export class LoggerService implements NestLoggerService, ILoggerService {
     });
   }
 
-  logRequest(req: any, res: any, responseTime: number): void {
+  logRequest(
+    req: ExpressRequest,
+    res: ExpressResponse,
+    responseTime: number,
+  ): void {
     this.logger.info('API Request', {
       method: req.method,
       url: req.originalUrl,

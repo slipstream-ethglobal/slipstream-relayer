@@ -140,7 +140,7 @@ export class RelayerController {
   }
 
   @Post('quote')
-  async getQuote(@Body() body: GetQuoteDto): Promise<GetQuoteResponseDto> {
+  getQuote(@Body() body: GetQuoteDto): GetQuoteResponseDto {
     try {
       const { chainName, tokenSymbol, amount } = body;
 
@@ -185,7 +185,7 @@ export class RelayerController {
     @Body() body: PrepareSignatureDto,
   ): Promise<PrepareSignatureResponseDto> {
     try {
-      const messageHash = this.relayerService.generateMessageForSigning(
+      const messageHash = await this.relayerService.generateMessageForSigning(
         body.chainName,
         body,
       );
@@ -219,8 +219,8 @@ export class RelayerController {
       const result = await this.relayerService.executeGaslessTransfer(body);
 
       return {
-        success: 'true',
         ...result,
+        success: 'true',
       };
     } catch (error) {
       this.loggerService.logError(error as Error, {
@@ -262,6 +262,135 @@ export class RelayerController {
           error: errorMessage,
         },
         statusCode,
+      );
+    }
+  }
+
+  @Post('process-standard-gasless-transfer')
+  async processStandardGaslessTransfer(
+    @Body() body: RelayTransferDto,
+  ): Promise<RelayTransferResponseDto> {
+    try {
+      const result =
+        await this.relayerService.processStandardGaslessTransfer(body);
+
+      return {
+        ...result,
+        success: 'true',
+      };
+    } catch (error) {
+      this.loggerService.logError(error as Error, {
+        endpoint: 'processStandardGaslessTransfer',
+        body,
+      });
+
+      // Determine appropriate status code based on error type
+      let statusCode = HttpStatus.BAD_REQUEST;
+      const errorMessage = (error as Error).message;
+
+      if (
+        errorMessage.includes('rate limit') ||
+        errorMessage.includes('Too many')
+      ) {
+        statusCode = HttpStatus.TOO_MANY_REQUESTS;
+      } else if (
+        errorMessage.includes('not found') ||
+        errorMessage.includes('not supported')
+      ) {
+        statusCode = HttpStatus.NOT_FOUND;
+      } else if (
+        errorMessage.includes('network') ||
+        errorMessage.includes('connection')
+      ) {
+        statusCode = HttpStatus.SERVICE_UNAVAILABLE;
+      }
+
+      throw new HttpException(
+        {
+          success: 'false',
+          error: errorMessage,
+        },
+        statusCode,
+      );
+    }
+  }
+
+  @Post('process-permit-gasless-transfer')
+  async processPermitBasedGaslessTransfer(
+    @Body() body: RelayTransferDto,
+  ): Promise<RelayTransferResponseDto> {
+    try {
+      const result =
+        await this.relayerService.processPermitBasedGaslessTransfer(body);
+
+      return {
+        ...result,
+        success: 'true',
+      };
+    } catch (error) {
+      this.loggerService.logError(error as Error, {
+        endpoint: 'processPermitBasedGaslessTransfer',
+        body,
+      });
+
+      // Determine appropriate status code based on error type
+      let statusCode = HttpStatus.BAD_REQUEST;
+      const errorMessage = (error as Error).message;
+
+      if (
+        errorMessage.includes('rate limit') ||
+        errorMessage.includes('Too many')
+      ) {
+        statusCode = HttpStatus.TOO_MANY_REQUESTS;
+      } else if (
+        errorMessage.includes('not found') ||
+        errorMessage.includes('not supported') ||
+        errorMessage.includes('does not support ERC2612')
+      ) {
+        statusCode = HttpStatus.NOT_FOUND;
+      } else if (
+        errorMessage.includes('network') ||
+        errorMessage.includes('connection')
+      ) {
+        statusCode = HttpStatus.SERVICE_UNAVAILABLE;
+      }
+
+      throw new HttpException(
+        {
+          success: 'false',
+          error: errorMessage,
+        },
+        statusCode,
+      );
+    }
+  }
+
+  @Get('check-permit-support/:chainName/:tokenAddress')
+  async checkPermitSupport(
+    @Param('chainName') chainName: string,
+    @Param('tokenAddress') tokenAddress: string,
+  ): Promise<{ supportsPermit: boolean }> {
+    try {
+      const supportsPermit =
+        await this.relayerService.checkERC2612PermitSupport(
+          chainName,
+          tokenAddress,
+        );
+
+      return { supportsPermit };
+    } catch (error) {
+      this.loggerService.logError(error as Error, {
+        endpoint: 'checkPermitSupport',
+        chainName,
+        tokenAddress,
+      });
+
+      throw new HttpException(
+        {
+          success: 'false',
+          error: (error as Error).message,
+        },
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -356,7 +485,7 @@ export class RelayerController {
   }
 
   @Get('gas-cache-stats')
-  async getGasCacheStats(): Promise<any> {
+  getGasCacheStats(): Record<string, unknown> {
     try {
       const stats = this.gasEstimationService.getCacheStats();
 

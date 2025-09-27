@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ethers } from 'ethers';
-import { GasEstimate, TransferParams } from '../interfaces/relayer.interface';
+import {
+  TransferParams,
+  GasEstimationResult,
+} from '../interfaces/relayer.interface';
 import { ChainConfigService } from './chain-config.service';
 import { ContractManagerService } from './contract-manager.service';
 import { LoggerService } from './logger.service';
@@ -9,14 +12,6 @@ export interface GasEstimationOptions {
   gasMultiplier?: number; // Buffer multiplier (default: 1.2 for 20% buffer)
   maxGasPrice?: bigint; // Maximum gas price to use
   fallbackGasPrice?: bigint; // Fallback gas price if network call fails
-}
-
-export interface GasEstimationResult extends GasEstimate {
-  gasLimit: string; // Gas limit with buffer applied
-  gasPriceWei: string; // Gas price in wei
-  gasCostWei: string; // Total cost in wei
-  gasCostEth: string; // Total cost in ETH
-  estimatedTimeMs?: number; // Time taken for estimation
 }
 
 @Injectable()
@@ -118,7 +113,10 @@ export class GasEstimationService {
         process.env.RELAYER_PRIVATE_KEY!,
       );
       const gasEstimate =
-        await contract.executeTransfer.estimateGas(transferParams);
+        await contract.processStandardGaslessTransfer.estimateGas(
+          transferParams,
+          '0x',
+        );
 
       this.logger.debug(
         `Gas estimate for ${chainName}: ${gasEstimate.toString()}`,
@@ -287,7 +285,6 @@ export class GasEstimationService {
    */
   getGasPriceHistory(
     chainName: string,
-    _hours = 24,
   ): Array<{ timestamp: number; gasPrice: string }> {
     // This would typically integrate with a gas price oracle or historical data service
     // For now, return empty array as placeholder

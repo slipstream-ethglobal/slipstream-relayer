@@ -6,9 +6,21 @@ import {
   TransferResult,
   GasEstimate,
   MessageHashResult,
+  GaslessTransactionRequest,
+  ERC2612PermitSignature,
+  BatchTransferResult,
 } from '../interfaces/relayer.interface';
+import {
+  ProcessStandardGaslessTransferParams,
+  ProcessPermitBasedGaslessTransferParams,
+  ProcessBatchStandardTransfersParams,
+  ProcessBatchPermitBasedTransfersParams,
+  ContractState,
+  RelayerInfo,
+  TokenInfo as ContractTokenInfo,
+} from '../contracts/types';
 import { ChainConfigService } from './chain-config.service';
-import { MinimalSecureTransferABI, ERC20ABI } from '../contracts/abis';
+import { SlipstreamGaslessProxyABI, ERC20ABI } from '../contracts/abis';
 
 @Injectable()
 export class ContractManagerService implements IContractManagerService {
@@ -45,7 +57,7 @@ export class ContractManagerService implements IContractManagerService {
       const wallet = this.getWallet(chainName, privateKey);
       const contract = new ethers.Contract(
         config.contractAddress,
-        MinimalSecureTransferABI,
+        SlipstreamGaslessProxyABI,
         wallet,
       );
       this.contracts.set(contractKey, contract);
@@ -67,22 +79,31 @@ export class ContractManagerService implements IContractManagerService {
     return this.contracts.get(tokenKey)!;
   }
 
-  async getNonce(
+  async getCurrentUserNonce(
     chainName: string,
     userAddress: string,
     privateKey: string,
   ): Promise<bigint> {
     try {
       const contract = this.getContract(chainName, privateKey);
-      const nonce = await contract.getNonce(userAddress);
+      const nonce = await contract.getCurrentUserNonce(userAddress);
       return nonce;
     } catch (error) {
       this.logger.error(
-        `Error getting nonce for ${userAddress} on ${chainName}:`,
+        `Error getting current user nonce for ${userAddress} on ${chainName}:`,
         error,
       );
       throw error;
     }
+  }
+
+  // Legacy method for backward compatibility
+  async getNonce(
+    chainName: string,
+    userAddress: string,
+    privateKey: string,
+  ): Promise<bigint> {
+    return this.getCurrentUserNonce(chainName, userAddress, privateKey);
   }
 
   async getTokenBalance(
@@ -260,6 +281,160 @@ export class ContractManagerService implements IContractManagerService {
     }
   }
 
+  async processStandardGaslessTransfer(
+    chainName: string,
+    params: ProcessStandardGaslessTransferParams,
+    privateKey: string,
+  ): Promise<TransferResult> {
+    try {
+      const contract = this.getContract(chainName, privateKey);
+      const config = this.chainConfigService.getChainConfig(chainName);
+
+      this.logger.log(`Processing standard gasless transfer on ${chainName}:`, {
+        from: params.transactionRequest.fromAddress,
+        to: params.transactionRequest.toAddress,
+        token: params.transactionRequest.tokenContract,
+        amount: params.transactionRequest.transferAmount.toString(),
+        fee: params.transactionRequest.relayerServiceFee.toString(),
+      });
+
+      // Estimate gas first
+      const gasEstimate =
+        await contract.processStandardGaslessTransfer.estimateGas(
+          params.transactionRequest,
+          params.userSignature,
+        );
+      const gasLimit = (gasEstimate * 120n) / 100n; // Add 20% buffer
+
+      // Execute the transaction
+      const tx = await contract.processStandardGaslessTransfer(
+        params.transactionRequest,
+        params.userSignature,
+        {
+          gasLimit: gasLimit,
+        },
+      );
+
+      this.logger.log(`Transaction submitted:`, {
+        hash: tx.hash,
+        chainId: config.chainId,
+        gasLimit: gasLimit.toString(),
+      });
+
+      // Wait for confirmation
+      const receipt = await tx.wait();
+
+      this.logger.log(`Transaction confirmed:`, {
+        hash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed?.toString(),
+        status: receipt.status,
+      });
+
+      return {
+        success: true,
+        txHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed?.toString() || '0',
+        explorerUrl: `${config.explorerUrl}/tx/${receipt.hash}`,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error processing standard gasless transfer on ${chainName}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async processPermitBasedGaslessTransfer(
+    chainName: string,
+    params: ProcessPermitBasedGaslessTransferParams,
+    privateKey: string,
+  ): Promise<TransferResult> {
+    try {
+      const contract = this.getContract(chainName, privateKey);
+      const config = this.chainConfigService.getChainConfig(chainName);
+
+      this.logger.log(
+        `Processing permit-based gasless transfer on ${chainName}:`,
+        {
+          from: params.transactionRequest.fromAddress,
+          to: params.transactionRequest.toAddress,
+          token: params.transactionRequest.tokenContract,
+          amount: params.transactionRequest.transferAmount.toString(),
+          fee: params.transactionRequest.relayerServiceFee.toString(),
+        },
+      );
+
+      // Estimate gas first
+      const gasEstimate =
+        await contract.processPermitBasedGaslessTransfer.estimateGas(
+          params.transactionRequest,
+          params.userSignature,
+          params.permitSignatureData,
+        );
+      const gasLimit = (gasEstimate * 120n) / 100n; // Add 20% buffer
+
+      // Execute the transaction
+      const tx = await contract.processPermitBasedGaslessTransfer(
+        params.transactionRequest,
+        params.userSignature,
+        params.permitSignatureData,
+        {
+          gasLimit: gasLimit,
+        },
+      );
+
+      this.logger.log(`Transaction submitted:`, {
+        hash: tx.hash,
+        chainId: config.chainId,
+        gasLimit: gasLimit.toString(),
+      });
+
+      // Wait for confirmation
+      const receipt = await tx.wait();
+
+      this.logger.log(`Transaction confirmed:`, {
+        hash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed?.toString(),
+        status: receipt.status,
+      });
+
+      return {
+        success: true,
+        txHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed?.toString() || '0',
+        explorerUrl: `${config.explorerUrl}/tx/${receipt.hash}`,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error processing permit-based gasless transfer on ${chainName}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async checkERC2612PermitSupport(
+    chainName: string,
+    tokenAddress: string,
+    privateKey: string,
+  ): Promise<boolean> {
+    try {
+      const contract = this.getContract(chainName, privateKey);
+      return await contract.checkERC2612PermitSupport(tokenAddress);
+    } catch (error) {
+      this.logger.error(
+        `Error checking ERC2612 permit support for ${tokenAddress} on ${chainName}:`,
+        error,
+      );
+      return false;
+    }
+  }
+
   // Expose provider for gas estimation service
   getProviderForGas(chainName: string): ethers.JsonRpcProvider {
     return this.getProvider(chainName);
@@ -268,5 +443,103 @@ export class ContractManagerService implements IContractManagerService {
   // Expose contract for gas estimation service
   getContractForGas(chainName: string, privateKey: string): ethers.Contract {
     return this.getContract(chainName, privateKey);
+  }
+
+  // Batch transfer methods
+  async processBatchStandardTransfers(
+    chainName: string,
+    params: ProcessBatchStandardTransfersParams,
+    privateKey: string,
+  ): Promise<BatchTransferResult> {
+    // Implementation for batch standard transfers
+    throw new Error('Batch standard transfers not implemented yet');
+  }
+
+  async processBatchPermitBasedTransfers(
+    chainName: string,
+    params: ProcessBatchPermitBasedTransfersParams,
+    privateKey: string,
+  ): Promise<BatchTransferResult> {
+    // Implementation for batch permit-based transfers
+    throw new Error('Batch permit-based transfers not implemented yet');
+  }
+
+  // Contract state queries
+  async getContractState(
+    chainName: string,
+    privateKey: string,
+  ): Promise<ContractState> {
+    try {
+      const contract = this.getContract(chainName, privateKey);
+      const [owner, paused, domainSeparator] = await Promise.all([
+        contract.owner(),
+        contract.paused(),
+        contract.CONTRACT_DOMAIN_SEPARATOR(),
+      ]);
+
+      return {
+        owner,
+        paused,
+        domainSeparator,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error getting contract state for ${chainName}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async getRelayerInfo(
+    chainName: string,
+    relayerAddress: string,
+    privateKey: string,
+  ): Promise<RelayerInfo> {
+    try {
+      const contract = this.getContract(chainName, privateKey);
+      // Note: These methods might not exist in the current ABI, adjust as needed
+      const [isAuthorized, lastActivity] = await Promise.all([
+        contract.isRelayerAuthorized(relayerAddress),
+        contract.getRelayerLastActivity(relayerAddress),
+      ]);
+
+      return {
+        isAuthorized,
+        lastActivity,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error getting relayer info for ${relayerAddress} on ${chainName}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async getTokenInfo(
+    chainName: string,
+    tokenAddress: string,
+    privateKey: string,
+  ): Promise<ContractTokenInfo> {
+    try {
+      const contract = this.getContract(chainName, privateKey);
+      // Note: These methods might not exist in the current ABI, adjust as needed
+      const [isSupported, lastActivity] = await Promise.all([
+        contract.isTokenSupported(tokenAddress),
+        contract.getTokenLastActivity(tokenAddress),
+      ]);
+
+      return {
+        isSupported,
+        lastActivity,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error getting token info for ${tokenAddress} on ${chainName}:`,
+        error,
+      );
+      throw error;
+    }
   }
 }

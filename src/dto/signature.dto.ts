@@ -28,11 +28,14 @@ export class PrepareSignatureDto {
   @Min(0)
   nonce: number;
 
-  @IsNumber()
-  @Min(Math.floor(Date.now() / 1000), {
-    message: 'Deadline must be in the future',
-  })
-  deadline: number;
+  @IsString()
+  @IsNotEmpty()
+  deadline: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^0x[a-fA-F0-9]+$/, { message: 'Invalid signature format' })
+  signature: string;
 }
 
 export class PrepareSignatureResponseDto {
