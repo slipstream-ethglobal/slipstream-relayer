@@ -48,4 +48,3 @@ export class GetQuoteResponseDto {
   @IsNotEmpty()
   tokenDecimals: string;
 }
-

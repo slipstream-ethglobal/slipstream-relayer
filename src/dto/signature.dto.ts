@@ -48,4 +48,3 @@ export class PrepareSignatureResponseDto {
   @IsNotEmpty()
   message: string;
 }
-
