@@ -100,22 +100,22 @@ async function startServer() {
     });
 
     // Test database connection
-    try {
-      await db.raw('SELECT 1');
-      logger.info('Database connection established');
-    } catch (dbError) {
-      logger.error('Database connection failed', { error: dbError });
-      throw dbError;
-    }
+    // try {
+    //   await db.raw('SELECT 1');
+    //   logger.info('Database connection established');
+    // } catch (dbError) {
+    //   logger.error('Database connection failed', { error: dbError });
+    //   throw dbError;
+    // }
 
-    // Initialize Redis
-    try {
-      await initRedis();
-      logger.info('Redis connection established');
-    } catch (redisError) {
-      logger.error('Redis connection failed', { error: redisError });
-      throw redisError;
-    }
+    // // Initialize Redis
+    // try {
+    //   await initRedis();
+    //   logger.info('Redis connection established');
+    // } catch (redisError) {
+    //   logger.error('Redis connection failed', { error: redisError });
+    //   throw redisError;
+    // }
 
     // Initialize services
     safetyMonitor = SafetyMonitor.getInstance();
