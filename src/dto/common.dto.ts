@@ -45,3 +45,4 @@ export class ValidationErrorDto {
   @IsNotEmpty()
   details: string;
 }
+

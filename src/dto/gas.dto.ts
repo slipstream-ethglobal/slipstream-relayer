@@ -47,3 +47,4 @@ export class EstimateGasResponseDto {
   @IsNotEmpty()
   gasCost: string;
 }
+
