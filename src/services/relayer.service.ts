@@ -56,7 +56,7 @@ export class RelayerService implements IRelayerService {
       const minFeeUsd = feeSettings.minFeeUsd;
       const minFeeTokens = ethers.parseUnits(
         minFeeUsd.toString(),
-        tokenConfig.decimals,
+        parseInt(tokenConfig.decimals),
       );
 
       // Use the higher of percentage fee or minimum fee
@@ -134,7 +134,7 @@ export class RelayerService implements IRelayerService {
 
       if (balance < totalRequired) {
         throw new Error(
-          `Insufficient balance. Required: ${ethers.formatUnits(totalRequired, tokenConfig.decimals)}, Available: ${ethers.formatUnits(balance, tokenConfig.decimals)}`,
+          `Insufficient balance. Required: ${ethers.formatUnits(totalRequired, parseInt(tokenConfig.decimals))}, Available: ${ethers.formatUnits(balance, parseInt(tokenConfig.decimals))}`,
         );
       }
 
@@ -149,7 +149,7 @@ export class RelayerService implements IRelayerService {
 
       if (allowance < totalRequired) {
         throw new Error(
-          `Insufficient allowance. Required: ${ethers.formatUnits(totalRequired, tokenConfig.decimals)}, Approved: ${ethers.formatUnits(allowance, tokenConfig.decimals)}`,
+          `Insufficient allowance. Required: ${ethers.formatUnits(totalRequired, parseInt(tokenConfig.decimals))}, Approved: ${ethers.formatUnits(allowance, parseInt(tokenConfig.decimals))}`,
         );
       }
 
